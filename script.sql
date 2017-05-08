@@ -1,42 +1,42 @@
-CREATE TABLE Shares_Blocks(
-  BLOCK_ID serial PRIMARY KEY,
-  Share_name varchar(20) NOT NULL,
-  Quantity bigint NOT NULL
+CREATE TABLE shares_blocks(
+  block_id int NOT NULL,
+  share_name varchar(20) NOT NULL,
+  quantity bigint DEFAULT 0,
+  FOREIGN KEY (block_id) REFERENCES shareholders (block_of_shares)
 );
 
-CREATE TABLE ShareHolders(
-  ID serial PRIMARY KEY,
-  First_name varchar(15) NOT NULL,
-  Second_name varchar(15) NOT NULL,
-  Block_of_shares int NOT NULL,
-  FUND bigint NOT NULL,
-  FOREIGN KEY (Block_of_shares) REFERENCES Shares_Blocks (BLOCK_ID)
+CREATE TABLE shareholders(
+  block_of_shares serial PRIMARY KEY,
+  first_name varchar(15) NOT NULL,
+  second_name varchar(15) NOT NULL,
+  fund bigint DEFAULT 0
 );
 
-CREATE TABLE Shares(
-  Share_name varchar(20)  NOT NULL,
-  Currency numeric(7,2)  NOT NULL,
-  Dividend numeric(2, 2)  NOT NULL,
-  Upside_potential numeric(2, 2) NOT NULL,
-  One_Year_Change float(2) NOT NULL,
-  Total_quantity  bigint NOT NULL,
-  PRIMARY KEY (Share_name) 
+CREATE TABLE shares(
+  share_name varchar(20)  NOT NULL,
+  currency numeric(9,2)  NOT NULL,
+  upside_potential float(2) DEFAULT 0,
+  one_year_change float(2) DEFAULT 0,
+  total_quantity  bigint NOT NULL,
+  payback_raiting  float(2) DEFAULT 0,
+  period int DEFAULT 0,
+
 );
 
-CREATE TABLE Stock_Exchange(
-  Share_name varchar(20) NOT NULL,
-  Currency numeric(7,2)  NOT NULL,
-  For_Sale bigint NOT NULL,
-  To_purchase bigint NOT NULL,
-  Demand_raiting numeric(2, 2) NOT NULL,
-  FOREIGN KEY (Share_name) REFERENCES Shares (Share_name)
+CREATE TABLE stock_exchange(
+  share_name varchar(20) NOT NULL,
+  currency float(2)  NOT NULL,
+  for_sale bigint NOT NULL,
+  bought bigint DEFAULT 0,
+  demand_raiting float(2) DEFAULT 0,
+  sales bigint DEFAULT 0,
+    PRIMARY KEY (share_name) 
 );
 
-CREATE TABLE Companies(
-  Name varchar(15) NOT NULL,
-  CEO varchar(30) NOT NULL,
-  Revenue bigint NOT NULL,
-  Total_equity bigint NOT NULL,
-  Payback_raiting  numeric(2, 2) NOT NULL,
-  PRIMARY KEY (Name) 
+CREATE TABLE companies(
+  name varchar(15) NOT NULL,
+  ceo varchar(30) NOT NULL,
+  total_assets float(2) NOT NULL,
+  net_income float(2) NOT NULL,
+  PRIMARY KEY (name) 
 );

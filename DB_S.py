@@ -1,5 +1,7 @@
 import re
 import random
+import numpy as np
+import pandas as pd
 import psycopg2
 
 const = 20
@@ -356,7 +358,7 @@ def contr_holder(conn, s):
                ),
                B AS(
                SELECT * FROM shares
-               WHERE share_name = %s AND period = 0
+               WHERE share_name = %s AND period = %s
                ),
                C AS (SELECT A.share_name, block_id, quantity, total_quantity
                FROM A
@@ -367,20 +369,51 @@ def contr_holder(conn, s):
                FROM C
                INNER JOIN shareholders
                ON block_of_shares = block_id
-               WHERE quantity >= 0.45 * total_quantity
-            """, (s, s))
+               WHERE quantity >= 0.1 * total_quantity
+            """, (s, s, str(cur_period)))
     n.clear()
     n = cur.fetchall()
     for i in n:
         print(i[0], i[1])
     return      
  
-
+def print_table(conn, s):
+    cur = conn.cursor()
+    l = ['shares_blocks', 'shareholders', 'shares', 'stock_exchange', 'companies']
+    if s not in l:
+        print("incorrect name of table")
+        return
+        
+    if s == 'shares_blocks':
+        cur.execute("SELECT * FROM shares_blocks")
+        n = cur.fetchall()
+        print(pd.DataFrame(n, columns = ['block_id', 'share_name', 'quantity']))
+    
+    if s == 'shareholders':
+        cur.execute("SELECT * FROM shareholders")
+        n = cur.fetchall()
+        print(pd.DataFrame(n, columns = ['block_of_shares', 'first_name', 'second_name', 'fund']))
+    
+    if s == 'shares':
+        cur.execute("SELECT * FROM shares WHERE period = %s;", (str(cur_period), ))
+        n = cur.fetchall()
+        print(pd.DataFrame(n, columns = ['share_name', 'currency', 'upside_potential', 
+                                         'one_year_change', 'total_quantity', 'payback_raiting', 'period']))    
+    if s == 'stock_exchange':
+        cur.execute("SELECT * FROM stock_exchange")
+        n = cur.fetchall()
+        print(pd.DataFrame(n, columns = ['sharedemand_raiting_name', 'currency', 'for_sale',
+                                         'bought', 'demand_raiting', 'sales']))
+    if s == 'companies':
+        cur.execute("SELECT * FROM companies")
+        n = cur.fetchall()
+        print(pd.DataFrame(n, columns = ['name', 'ceo', 'total_assets', 'net_income']))
+    return
     
     
 def commandor(conn, l):
     if (l[0] == 'controlling' and l[1] == 'shareholder'):
-        if (len(l) <= 3):
+        if (len(l) < 3):
             print("too few agruments")
         else:
             contr_holder(conn, l[2])
@@ -391,6 +424,12 @@ def commandor(conn, l):
     if (l[0] == 'reccomendations' and l[1] == 'for' and l[2] == 'purchase'):
         perspective_shares(conn)
         return
+    if (l[0] == 'print'):
+        if (len(l) < 2):
+            print("too few agruments")
+        else:
+            print_table(conn, l[1])
+        return    
     if (l[0] == 'next'):
         global next_l
         next_l = 1
@@ -455,11 +494,12 @@ def game(conn):
 
 conn = psycopg2.connect("dbname = 'postgres' user = 'postgres' password = '21esetef' host = 'localhost' port = 5432")
 
+
 cur = conn.cursor()
 
-full_rows_begin(conn)
 
 get_cur_per(conn)
+
 
 while exit != 1:
     next_l = 0
@@ -470,7 +510,9 @@ while exit != 1:
         commandor(conn, com_parse)
     if exit == 1:
         break
-    game(conn)    
+    game(conn) 
+
+   
 
 print("ohh yeah")
 
